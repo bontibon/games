@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Reversi</title>
+<style type="text/css">
+body{
+font-family: Verdana, Arial, Helvetica, sans-serif;
+text-align: center;
+}
+p{
+clear: both;
+}
+#main{
+width: 550px;
+margin: 0px auto;
+}
+#board{
+float: left;
+width: 350px;
+}
+#board div{
+width: 40px;
+height: 40px;
+margin: 1px;
+background: #CCCCCC;
+float: left;
+cursor: pointer;
+}
+#board div.used{
+cursor: default;
+}
+#score{
+float:  right;
+width: 200px;
+}
+</style>
+<script type="text/javascript">
+var currentPlayer = 'white';
+var won = false;
+function $(id){
+	return document.getElementById(id);
+}
+function clickBlock(e){
+	var x = e.id.substr(1, 1);
+	var y = e.id.substr(2, 1);
+	if(possibleMove(x, y) !== false){
+		setBlock(x, y);
+		var totals = countBlocks();
+		if(totals[0] + totals[1] == 64){
+			if(totals[0] == totals[1]){
+				$('message').innerHTML = 'It\'s a Draw!';
+			}else{
+				$('message').innerHTML = (totals[0] > totals[1]) ? 'White Wins!':'Black Wins!';
+			}
+		}else{
+			currentPlayer = (currentPlayer == 'white') ? 'black':'white';
+			$('message').innerHTML = 'Go ' + ((currentPlayer == 'white') ? 'White':'Black');
+		}
+	}
+	document.body.focus();
+}
+function possibleMove(x, y){
+	var done = 0;
+	var tempArr = [];
+	var perRun, xDir, yDir;
+	for(var z = 0; z < 8; z++){
+		perRun = 0;
+		tempArr.length = 0;
+		for(var i = 1; i < 8; i++){
+			i = Number(i);
+			x = Number(x);
+			y = Number(y);
+			xDir = getXDirection(z, i, x);
+			yDir = getYDirection(z, i, y);
+			if(!$('a' + xDir + yDir)){
+				tempArr.length = 0;
+				break;
+			}
+			if(isOppBlock(xDir, yDir)){
+				tempArr[perRun] = String(xDir) + String(yDir);
+				perRun++;
+			}else if(isMine(xDir, yDir) && perRun > 0){
+				break;
+			}else if(isBlank(xDir, yDir) || isMine(xDir, yDir)){
+				tempArr.length = 0;
+				break;
+			}
+		}
+		done += makeArr(tempArr);
+	}
+	return (done == 0) ? false:done;
+}
+function getYDirection(a, c, m){
+	switch(a){
+		case 2:
+		case 6:
+			return m;
+		case 3:
+		case 4:
+		case 5:
+			return m + c;
+		case 0:
+		case 1:
+		case 7:
+			return m - c;
+	}	
+}
+function getXDirection(a, c, m){
+	switch(a){
+		case 0:
+		case 4:
+			return m;
+		case 1:
+		case 2:
+		case 3:
+			return m + c;
+		case 5:
+		case 6:
+		case 7:
+			return m - c;
+	}	
+}
+function makeArr(arr){
+	for(var i = 0; i < arr.length; i++){
+		setBlock(arr[i].substr(0, 1), arr[i].substr(1));
+	}
+	return arr.length;
+}
+function isBlank(x, y){
+	var contents = ($('a' + x + y).innerHTML == '');
+	return contents;
+}
+function isMine(x, y){
+	var contents = ($('a' + x + y).innerHTML.indexOf(currentPlayer + '.png') != -1);
+	return contents;
+}
+function isOppBlock(x, y){
+	var contents = ($('a' + x + y).innerHTML.indexOf(oppPlayer() + '.png') != -1);
+	return contents;
+}
+function oppPlayer(){
+	return (currentPlayer == 'white') ? 'black':'white';
+}
+function setBlock(x, y){
+	$('a' + x + y).innerHTML = '<img src="' + currentPlayer + '.png" width="40" height="40" alt="" />';
+}
+function generateBoard(){
+	for(var y = 0; y < 8; y++){
+		for(var x = 0; x < 8; x++){
+			$('board').innerHTML += '<div id="a' + x + y + '" onclick="clickBlock(this)">' + intBlock(x, y) + '<\/div>';
+		}
+	}
+	countBlocks();
+}
+function intBlock(x, y){
+	if((x == 3 && y == 3) || (x == 4 && y == 4)){
+		return '<img src="white.png" width="40" height="40" alt="" />';
+	}
+	if((x == 4 && y == 3) || (x == 3 && y == 4)){
+		return '<img src="black.png" width="40" height="40" alt="" />';
+	}
+	return '';
+}
+function countBlocks(){
+	var white = 0;
+	var black = 0;
+	var items = document.getElementsByTagName('img');
+	for(var i = 0; i < items.length; i++){
+		items[i].parentNode.className = 'used';
+		items[i].parentNode.onclick = '';
+		if(items[i].src.indexOf('white.png') != -1){
+			white++;
+		}
+		if(items[i].src.indexOf('black.png') != -1){
+			black++;
+		}
+	}
+	$('whiteScore').innerHTML = white;
+	$('blackScore').innerHTML = black;
+	return [white, black];
+}
+</script>
+</head>
+<body onload="generateBoard()">
+	<h1>Reversi</h1>
+	<div id="main">
+		<div id="board"></div>
+		<div id="score">
+			<h3>Score</h3>
+			<p>White: <span id="whiteScore">0</span></p>
+			<p>Black: <span id="blackScore">0</span></p>
+		</div>
+	</div>
+	<p id="message">Go White</p>
+	<p>(this version is buggy)</p>
+</body>
+</html>

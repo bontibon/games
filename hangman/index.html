@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<title>Hangman</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<style type="text/css">
+		*{
+		font-family: sans-serif;
+		}
+		#man p{
+		padding: 0;
+		margin: 0;
+		font-size: 275%;
+		}
+		#input{
+		margin-top: 20px;
+		}
+		#input button, #input input{
+		font-size: 150%;
+		cursor: pointer;
+		}
+		#input button{
+		border: 0;
+		background: #FFFFFF;
+		}
+		#input button:hover{
+		text-decoration: underline;
+		}
+		#wordArea{
+		margin-top: 20px;
+		font-size: 250%;
+		}
+		#wordArea span{
+		text-decoration: underline;
+		}
+		</style>
+	</head>
+	<body>
+		<h1>Hangman</h1>
+		<div id="man">
+			<p>&nbsp;</p>
+			<p>&nbsp;</p>
+			<p>&nbsp;</p>
+			<p>&nbsp;</p>
+			<p>&nbsp;</p>
+			<p>&nbsp;</p>
+		</div>
+		<div id="input">
+			<input type="text" id="theWord" />
+			<button id="setWord">Set Word</button>
+		</div>
+		<div id="wordArea">
+		
+		</div>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+		<script type="text/javascript">
+		$(function()
+		{
+			var states = [
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|", "|", "|", "|"],
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O", "|", "|", "|"],
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|", "|"],
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O", "|&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;|", "|", "|"],
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O", "|&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;|&nbsp;\\", "|", "|"],
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O", "|&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;|&nbsp;\\", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/", "|"],
+				["&nbsp;___", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;O", "|&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;|&nbsp;\\", "|&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;\\", "|"]
+			];
+			
+			var currentState = 0;
+			var theWordWas;
+			
+			$("#theWord").attr("disabled", "");
+			$("#theWord").val("");
+			
+			$("#setWord").attr("disabled", "");
+			
+			$("#setWord").click(function()
+			{
+				var preWord = $.trim($("#theWord").val());
+				preWord = preWord.toLowerCase();
+				preWord = preWord.replace(/[^a-z ]/, "");
+				preWord = preWord.replace(/[ ]{2,}/, " ");
+				preWord = preWord.replace(/^ *(.*) *$/, "$1");
+				if(preWord != "")
+				{
+					theWordWas = preWord;
+					$("#theWord").val(preWord);
+					$("#theWord, #setWord").attr("disabled", "disabled");
+					setTimeout(function()
+					{
+						$("#input").fadeOut(500, function()
+						{
+							var newHTML = "";
+							for(var i = 0; i < preWord.length; i++)
+							{
+								if(preWord.substr(i, 1) == " ")
+								{
+									newHTML += "&nbsp;&nbsp;";
+								}
+								else
+								{
+									newHTML += "&nbsp;<span class=\"" + preWord.substr(i, 1) + "\">&nbsp;<\/span>";
+								}
+							}
+							$("#wordArea").html(newHTML);
+							$(document).keypress(function(e)
+							{
+								var letterPressed = e.charCode ? String.fromCharCode(e.charCode) : String.fromCharCode(e.keyCode);
+								var query = $("#wordArea span." + letterPressed);
+								if(query.length == 0)
+								{
+									currentState++;
+									setState(currentState);
+									if(currentState == states.length - 1)
+									{
+										alert("Game Over: " + theWordWas);
+										window.location.reload();
+									}
+								}
+								else
+								{
+									query.each(function()
+									{
+										$(this).html($(this).attr("class"));
+										$(this).removeAttr("class");
+									});
+									var possible = true;
+									$("#wordArea span").each(function()
+									{
+										if($(this).attr("class") != "")
+										{
+											possible = false;
+										}
+									});
+									if(possible == true)
+									{
+										alert("Good Game!");
+										window.location.reload();
+									}
+								}
+							});
+						});
+					}, 2000);
+				}
+			});
+			
+			setState(0);
+			function setState(index)
+			{
+				for(var i = 0; i < states[0].length; i++)
+				{
+					$("#man p:eq(" + i + ")").html(states[index][i]);
+				}
+			}
+		});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Dots and Boxs</title>
+<style type="text/css">
+body{
+font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+h1, h2{
+text-align: center;
+}
+a{
+color: #000000;
+}
+#board{
+width: 480px;
+float: left;
+}
+#container{
+width: 625px;
+margin: 0px auto;
+}
+#score{
+float: right;
+text-align: center;
+}
+.row{
+width: 480px;
+clear: both;
+}
+.dot, .hbar, .vbar, .block{
+float: left;
+}
+.dot{
+width: 5px;
+height: 5px;
+background: #000000;
+}
+.hbar, .vbar{
+background: #DFDFDF;
+cursor: pointer;
+}
+.hbar:hover, .vbar:hover{
+background: #000000;
+}
+.hbar{
+width: 40px;
+height: 5px;
+}
+.vbar{
+width: 5px;
+height: 40px;
+}
+.block{
+width: 40px;
+height: 40px;
+}
+.used{
+background: #000000;
+cursor: default;
+}
+.blue{
+background: #004191;
+}
+.red{
+background: #68171A;
+}
+#clear{
+clear: both;
+}
+#status{
+text-align: center;
+font-size: 150%;
+font-weight: bold;
+color: #004191;
+}
+</style>
+<script type="text/javascript">
+var currentPlayer = 'blue';
+var gameOver = false;
+function $(e){
+	return document.getElementById(e);
+}
+function init(){
+	var newInner = '';
+	for(var y = 0; y < 21; y++){
+		newInner += '<div class="row">';
+		for(var x = 0; x < 10; x++){
+			newInner += (y % 2 == 0) ? '<div class="dot"><\/div><div class="hbar" id="a' + x + '_' + y + '" onclick="clickBlock(this)"><\/div>':'<div class="vbar" id="a' + x + '_' + y + '" onclick="clickBlock(this)"><\/div><div class="block" id="b' + x + '_' + y + '"><\/div>';
+		}
+		newInner += (y % 2 == 0) ? '<div class="dot"><\/div>':'<div class="vbar" id="a' + x + '_' + y + '" onclick="clickBlock(this)"><\/div>';
+		newInner += '<\/div>';
+	}
+	$('board').innerHTML = newInner;
+}
+function clickBlock(e){
+	if(gameOver)
+		return;
+	var x = Number(e.id.substr(1, e.id.indexOf('_') - 1));
+	var y = Number(e.id.substr(e.id.indexOf('_') + 1));
+	var isHorizontal = (e.className.indexOf('hbar') != -1);
+	var atLeastOne = false;
+	e.className += ' used';
+	e.onclick = 'none';
+	if(isHorizontal){
+		if(isActive(x + 1, y + 1) && isActive(x, y + 2) && isActive(x, y + 1)){
+			setBlock(x, y + 1);
+			atLeastOne = true;
+			giveScore();
+		}
+		if(isActive(x + 1, y - 1) && isActive(x, y - 2) && isActive(x, y - 1)){
+			setBlock(x, y - 1);
+			atLeastOne = true;
+			giveScore();
+		}
+	}else{
+		if(isActive(x, y - 1) && isActive(x + 1, y) && isActive(x, y + 1)){
+			setBlock(x, y);
+			atLeastOne = true;
+			giveScore();
+		}
+		if(isActive(x - 1, y - 1) && isActive(x - 1, y) && isActive(x - 1, y + 1)){
+			setBlock(x - 1, y);
+			atLeastOne = true;
+			giveScore();
+		}
+	}
+	if(atLeastOne == false){
+		changePlayer();
+	}
+	checkWin();
+}
+function isActive(x, y){
+	if($('a' + x + '_' + y)){
+		return $('a' + x + '_' + y).className.indexOf('used') != -1;
+	}
+	return false;
+}
+function giveScore(){
+	var current = $(currentPlayer + 'score').innerHTML;
+	current++;
+	$(currentPlayer + 'score').innerHTML = current;
+}
+function changePlayer(){
+	currentPlayer = (currentPlayer == 'blue') ? 'red':'blue';
+	setColour(currentPlayer);
+	$('status').innerHTML = 'Go ' + (currentPlayer == 'blue' ? 'Blue':'Red');
+}
+function setColour(player){
+	$('status').style.color = (player == 'blue') ? '#004191':'#68171A';
+}
+function setBlock(x, y){
+	$('b' + x + '_' + y).className += ' ' + currentPlayer;
+}
+function checkWin(){
+	var blueScore = Number($('bluescore').innerHTML);
+	var redScore = Number($('redscore').innerHTML);
+	if(blueScore >= 51){
+		$('status').innerHTML = 'Blue Wins! <a href="javascript:;" onclick="window.location.reload()">Play Again<\/a>';
+		setColour('blue');
+		gameOver = true;
+	}else if(redScore >= 51){
+		$('status').innerHTML = 'Red Wins! <a href="javascript:;" onclick="window.location.reload()">Play Again<\/a>';
+		setColour('red');
+		gameOver = true;
+	}else if(blueScore == 50 && redScore == 50){
+		$('status').innerHTML = 'It\'s a Tie! <a href="javascript:;" onclick="window.location.reload()">Play Again<\/a>';
+		$('status').style.color = '#000000';
+		gameOver = true;
+	}
+}
+</script>
+</head>
+<body onload="init()">
+	<h1>Dots and Boxes</h1>
+	<div id="container">
+		<div id="board"></div>
+		<div id="score">
+			<h2>Score</h2>
+			<p>Blue: <span id="bluescore">0</span></p>
+			<p>Red: <span id="redscore">0</span></p>
+		</div>
+		<div id="clear"></div>
+		<p id="status">Go Blue</p>
+	</div>
+</body>
+</html>

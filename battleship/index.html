@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Battleship</title>
+<style type="text/css">
+body{
+font-family: Verdana, Arial, Helvetica, sans-serif;
+text-align: center;
+}
+a{
+color: #000000;
+}
+p{
+clear: both;
+}
+ul{
+list-style: none;
+margin: 0px;
+padding: 0px;
+}
+#board{
+width: 425px;
+margin: 0px auto;
+}
+#board div{
+float: left;
+width: 40px;
+height: 40px;
+background: #000099;
+margin: 1px;
+cursor: pointer;
+}
+#board div.miss{
+background: #0000FF;
+}
+#board div.hit{
+background: #AA0004;
+}
+#board div.sunk{
+background: #5E0002;
+}
+</style>
+<script type="text/javascript">
+var aircraft = [];
+var aircraftH = 0;
+var battleship = [];
+var battleshipH = 0;
+var submarine = [];
+var submarineH = 0;
+var patrol = [];
+var patrolH = 0;
+var won = false;
+var move = 0;
+function $(id){
+	return document.getElementById(id);
+}
+function makeBoard(){
+	for(x = 0; x < 10; x++)
+		for(y = 0; y < 10; y++)
+			$('board').innerHTML += '<div onclick="clickBlock(this)" id="a' + x.toString() + y.toString() + '"><\/div>';
+}
+function seedShips(){
+	do{
+		tempShip = seedRange(randNum(), randNum(), randDirection(), 5);
+	}while(!tempShip);
+	aircraft = tempShip;
+	do{
+		tempShip = seedRange(randNum(), randNum(), randDirection(), 4);
+	}while(!tempShip || checkConf(aircraft, tempShip));
+	battleship = tempShip;
+	do{
+		tempShip = seedRange(randNum(), randNum(), randDirection(), 3);
+	}while(!tempShip || checkConf(aircraft, tempShip) || checkConf(battleship, tempShip));
+	submarine = tempShip;
+	do{
+		tempShip = seedRange(randNum(), randNum(), randDirection(), 2);
+	}while(!tempShip || checkConf(aircraft, tempShip) || checkConf(battleship, tempShip) || checkConf(submarine, tempShip));
+	patrol = tempShip;
+}
+function clickBlock(e){
+	if(won)
+		return;
+	move++;
+	temp5 = e.id.substr(1, 1) + "+" + e.id.substr(2, 1);
+	if(checkHit(aircraft, temp5)){
+		aircraftH++;
+		if(aircraftH == 5)
+			makeSunk(aircraft, 'aircraft');
+		else
+			e.className = 'hit';
+	}else if(checkHit(battleship, temp5)){
+		battleshipH++;
+		if(battleshipH == 4)
+			makeSunk(battleship, 'battleship');
+		else
+			e.className = 'hit';
+	}else if(checkHit(submarine, temp5)){
+		submarineH++;
+		if(submarineH == 3)
+			makeSunk(submarine, 'submarine');
+		else
+			e.className = 'hit';
+	}else if(checkHit(patrol, temp5)){
+		patrolH++;
+		if(patrolH == 2)
+			makeSunk(patrol, 'patrol');
+		else
+			e.className = 'hit';
+	}else{
+		e.className = "miss";
+	}
+	if(aircraftH == 5 && battleshipH == 4 && submarineH == 3 && patrolH == 2){
+		$("move").innerHTML = 'You won in ' + move + ' moves! <a href="javascript:;" onclick="window.location.reload()">Play Again<\/a>';
+		won = true;
+	}else{
+		e.onclick = null;
+		$("move").innerHTML = "Move: " + move;
+	}
+}
+function randNum(){
+	temp3 = Math.floor(Math.random() * 10);
+	return temp3 == 10 ? 9:temp3;
+}
+function randDirection(){
+	temp4 = Math.floor(Math.random() * 100);
+	return (temp4 < 50) ? 1:2;
+}
+function makeSunk(arr, str){
+	for(i = 0; i < arr.length; i++){
+		temp7 = arr[i].split("+");
+		$("a" + temp7[0] + temp7[1]).className = "sunk";
+	}
+	$(str).style.textDecoration = 'line-through';
+}
+function checkHit(arr, temp6){
+	for(i = 0; i < arr.length; i++)
+		if(arr[i] == temp6)
+			return true;
+	return false;
+}
+function checkConf(arr, me){
+	for(i = 0; i < arr.length; i++)
+		for(x = 0; x < me.length; x++)
+			if(arr[i] == me[x])
+				return true;
+	return false;
+}
+function checkNegs(arr){
+	for(i = 0; i < arr.length; i++){
+		temp2 = arr[i].split("+");
+		if(temp2[0] < 0 || temp2[1] < 0 || temp2[0] > 9 || temp2[1] > 9)
+			return true;
+	}
+	return false;
+}
+function seedRange(startingPointX, startingPointY, direction, length){
+	temp = [];
+	for(i = 0; i < length; i++){
+		if(direction == 1)
+			temp[temp.length] = startingPointX.toString() + "+" + (startingPointY - i).toString();
+		else if(direction == 2)
+			temp[temp.length] = (startingPointX + i).toString() + "+" + startingPointY.toString();
+	}
+	return checkNegs(temp) ? false:temp;
+}
+</script>
+</head>
+<body onload="seedShips();makeBoard();">
+	<h1>Battleship</h1>
+	<p>Try and sink the computer in the least amount of moves.</p>
+	<div id="board"></div>
+	<p id="move">Move: 0</p>
+	<h4>Ships</h4>
+	<ul>
+		<li id="aircraft">5 - Aircraft</li>
+		<li id="battleship">4 - Battleship</li>
+		<li id="submarine">3 - Submarine</li>
+		<li id="patrol">2 - Patrol</li>
+	</ul>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>speed guessing</title>
+  <style type="text/css">
+  body, input{
+    font-family: Segoe Ui, tahoma, arial;
+    text-align: center
+  }
+  #responce{
+    font-size: 80px;
+    font-weight: bold
+  }
+  #myguess{
+    margin-top: 10px;
+    padding: 5px;
+    font-size: 30px
+  }
+  #newgame, #guess{
+    margin-top: 5px;
+    font-size: 25px
+  }
+  #time{
+    margin-top: 10px;
+    font-size: 60px
+  }
+  </style>
+  <script type="text/javascript">
+  var first;
+  var answer;
+  var timer;
+  function $(e){
+    return document.getElementById(e);
+  }
+  function newGame(){
+    first = true;
+    answer = Math.floor(Math.random()*101);
+    if(answer == 0)
+      answer = 1;
+    $('responce').style.color = "#000000";
+    $('responce').innerHTML = "Please enter your first guess (1-100)";
+    $('myguess').disabled = "";
+    $('guess').disabled = "";
+    $('myguess').value = "";
+    $('time').innerHTML = "00:00";
+    $('myguess').focus();
+    clearTimeout(timer);
+  }
+  function tickr(){
+    tmp = $('time').innerHTML.split(":");
+    mins = tmp[0];
+    mins = mins.substr(0, 1) == "0" ? parseInt(mins.substr(1)):parseInt(mins);
+    secs = tmp[1];
+    secs = secs.substr(0, 1) == "0" ? parseInt(secs.substr(1)):parseInt(secs);
+    if(secs == 59){
+      mins = mins + 1;
+      secs = 0;
+    }else{
+      secs = secs + 1;
+    }
+    $('time').innerHTML = (mins < 10 ? "0" + mins:mins) + ":" + (secs < 10 ? "0" + secs:secs);
+    timer = setTimeout("tickr()", 1000);
+  }
+  function guessit(){
+    if(first == true){
+      timer = setTimeout("tickr()", 1000);
+      checkAnswer();
+      first = false;
+    }else{
+      checkAnswer();
+    }
+    return false;
+  }
+  function checkAnswer(){
+    if($('myguess').value > answer){
+      $('responce').innerHTML = "Lower";
+      $('responce').style.color = "#6F1B1B";
+      $('myguess').value = "";
+    }else if($('myguess').value < answer){
+      $('responce').innerHTML = "Higher";
+      $('responce').style.color = "#074A6F";
+      $('myguess').value = "";
+    }else if($('myguess').value == answer){
+      $('responce').innerHTML = "Correct";
+      $('responce').style.color = "#094F05";
+      $('myguess').disabled = "disabled";
+      $('guess').disabled = "disalbed";
+      clearTimeout(timer);
+    }
+  }
+  </script>
+</head>
+<body>
+<div id="responce">
+Welcome!
+</div>
+<form action="" method="post" onsubmit="return guessit()">
+  <input type="text" name="myguess" id="myguess" size="15" disabled="disabled" />
+  <br />
+  <input type="button" onclick="newGame()" name="newgame" value="New Game" id="newgame" />
+  <input type="submit" name="guess" value="Guess" id="guess" disabled="disabled" />
+</form>
+<div id="time">
+00:00
+</div>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>game</title>
+        <style type="text/css">
+		*
+		{
+			margin: 0;
+			padding: 0;
+			font-family: sans-serif;
+			font-size: 100%;
+			outline: none;
+		}
+		table, p
+		{
+			margin: 10px;
+		}
+		tr, td
+		{
+			text-align: center;	
+		}
+		.nums
+		{
+			font-weight: bold;
+		}
+		.block, .active_block, .win_block
+		{
+			width: 50px;
+			height: 50px;
+			display: block;
+			background: #EEE
+		}
+		.active_block
+		{
+			background: #0A4383;
+		}
+		.win_block
+		{
+			background: #86b76a;
+		}
+		</style>
+    </head>
+    <body>
+    	<table cellpadding="0" cellspacing="2">
+        <script type="text/javascript">
+		var size = 5, count = 13, answers, finished = false;
+		var generateRandomCoords = function(size, count)
+		{
+			var coords = new Array(size);
+			for(var i = 0; i < size; i++)
+			{
+				coords[i] = new Array(size);
+			}
+			var c = 0, number_1 = 0, number_2 = 0;
+			while(c < count)
+			{
+				do
+				{
+					number_1 = Math.round(Math.random() * size);
+					number_2 = Math.round(Math.random() * size);
+				}
+				while(number_1 == 0 || number_2 == 0);
+				if(!coords[number_1 - 1][number_2 - 1])
+				{
+					coords[number_1 - 1][number_2 - 1] = true;
+					c++;
+				}
+			}
+			return coords;
+		};
+		var number_list = function(x, y)
+		{
+			var str = "", chain = 0;
+			for(var i = 0; i <= size; i++)
+			{
+				if(x == null)
+				{
+					if(i < size && answers[i][y])
+					{
+						chain++;
+					}
+					else
+					{
+						if(chain > 0)
+						{
+							str += chain.toString() + "<br />";
+						}
+						chain = 0;
+					}
+
+				}
+				else if(y == null)
+				{
+					if(i < size && answers[x][i])
+					{
+						chain++;
+					}
+					else
+					{
+						if(chain > 0)
+						{
+							str += chain.toString() + " ";
+						}
+						chain = 0;
+					}
+				}
+			}
+			return str;
+		};
+		var click_block = function(ele, x, y)
+		{
+			if(finished)
+			{
+				return false;
+			}
+			ele.className = ele.className == 'block' ? 'active_block' : 'block';
+			check_board();
+			return false;
+		};
+		var check_board = function()
+		{
+			var items = document.getElementsByTagName("a");
+			var c = 0;
+			for(var i = 0; i < items.length; i++)
+			{
+				if(items[i].className == "active_block")
+				{
+					var x = parseInt(items[i].id.substr(1, items[i].id.indexOf(",") - 1));
+					var y = parseInt(items[i].id.substr(items[i].id.indexOf(",") + 1));
+					if(answers[x - 1][y - 1])
+					{
+						c++;
+					}
+					else
+					{
+						return false;
+					}
+				}
+			}
+			if(c == count)
+			{
+				for(var i = 0; i < items.length; i++)
+				{
+					if(items[i].className == "active_block")
+					{
+						items[i].className = "win_block";
+					}
+				}
+				finished = true;
+			}
+			return false;
+		};
+		answers = generateRandomCoords(size, count);
+		for(var x = 0; x <= size; x++)
+		{
+			document.write("<tr>");
+			for(var y = 0; y <= size; y++)
+			{
+				if(y == 0 && x > 0)
+				{
+					document.write("<td><span class='nums'>" + number_list(x - 1, null) + "</span></td>");
+				}
+				else if(x == 0 && y > 0)
+				{
+					document.write("<td><span class='nums'>" + number_list(null, y - 1) + "</span></td>");
+				}
+				else if(x > 0 && y > 0)
+				{
+					document.write("<td><a href='#' id='b" + x + "," + y + "' onclick='click_block(this, " + x + ", " + y + ");return false;' class='block'></a></td>");
+				}
+				else
+				{
+					document.write("<td>&nbsp;</td>");
+				}
+			}
+			document.write("</tr>");
+		}
+		</script>
+		</table>
+        <p><a href="#" onclick="window.location.reload()">New Game</a></p>
+    </body>
+</html>

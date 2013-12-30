@@ -1,0 +1,160 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Connect Four</title>
+<style type="text/css">
+*{
+line-height: 200%;
+}
+body{
+font-family: Verdana, Arial, Helvetica, sans-serif;
+text-align: center;
+}
+#whereToDrop{
+width: 440px;
+margin: 0px auto;
+}
+#whereToDrop div{
+width: 60px;
+height: 20px;
+background: #999999;
+margin: 1px;
+float: left;
+cursor: pointer;
+}
+#board{
+width: 440px;
+margin: 0px auto;
+}
+#board div{
+width: 60px;
+height: 60px;
+background: #CCCCCC;
+float: left;
+margin: 1px;
+}
+#board .blue{
+background: #004191;
+}
+#board .red{
+background: #68171A;
+}
+a{
+color: #000000;
+}
+p{
+clear: both;
+}
+</style>
+<script type="text/javascript">
+var currentPlayer = 'blue';
+var won = false;
+var timesClicked = 0;
+function $(e){
+	return document.getElementById(e);
+}
+function init(){
+	for(var y = 0; y < 6; y++)
+		for(var x = 0; x < 7; x++)
+			$('board').innerHTML += '<div id="a' + x.toString() +  y.toString() + '"></div>';
+}
+function clickBlock(num, e){
+	if(won)
+		return;
+	if(!columnPossible(num))
+		return;
+	timesClicked++;
+	$(getLowest(num)).className = currentPlayer;
+	if(!columnPossible(num)){
+		e.onclick = null;
+		e.style.visibility = 'hidden';
+	}
+	if(checkWin('red') || checkWin('blue')){
+		won = true;
+		$('message').innerHTML = (currentPlayer == 'red' ? 'Red':'Blue') + ' Wins! <a href="javascript:;" onclick="window.location.reload()">Play Again</a>';
+	}else if(timesClicked == 42){
+		won = true;
+		$('message').innerHTML = 'It\'s a Draw! <a href="javascript:;" onclick="window.location.reload()">Play Again</a>';
+	}else{
+		currentPlayer = (currentPlayer == 'blue') ? 'red':'blue';
+		$('message').innerHTML = 'Go ' + (currentPlayer == 'red' ? 'Red':'Blue');
+	}
+}
+function columnPossible(col){
+	return ($('a' + col.toString() + '0').className == '');
+}
+function getLowest(col){
+	for(var i = 5; i < 6; i--)
+		if($('a' + col.toString() + i.toString()).className == '')
+			return 'a' + col.toString() + i.toString();
+}
+function checkWin(player){
+	var subTotal;
+	for(var y = 0; y < 6; y++){
+		for(var x = 0; x < 7; x++){
+			for(var z = 0; z <= 7; z++){
+				subTotal = 0;
+				for(var l = 0; l <= 3; l++){
+					if($('a' + getXDirection(x, z, l).toString() + getYDirection(y, z, l).toString())){
+						if($('a' + getXDirection(x, z, l).toString() + getYDirection(y, z, l).toString()).className == player){
+							subTotal++;
+						}
+					}else{
+						break;
+					}
+				}
+				if(subTotal == 4){
+					return true;
+				}
+			}
+		}
+	}
+}
+function getYDirection(a, c, m){
+	switch(c){
+		case 2:
+		case 6:
+			return a;
+		case 3:
+		case 4:
+		case 5:
+			return a + m;
+		case 0:
+		case 1:
+		case 7:
+			return a - m;
+	}	
+}
+function getXDirection(a, c, m){
+	switch(c){
+		case 0:
+		case 4:
+			return a;
+		case 1:
+		case 2:
+		case 3:
+			return a + m;
+		case 5:
+		case 6:
+		case 7:
+			return a - m;
+	}	
+}
+</script>
+</head>
+<body onload="init()">
+	<h1>Connect Four</h1>
+	<div id="whereToDrop">
+		<div onclick="clickBlock(0, this)"></div>
+		<div onclick="clickBlock(1, this)"></div>
+		<div onclick="clickBlock(2, this)"></div>
+		<div onclick="clickBlock(3, this)"></div>
+		<div onclick="clickBlock(4, this)"></div>
+		<div onclick="clickBlock(5, this)"></div>
+		<div onclick="clickBlock(6, this)"></div>
+	</div>
+	<div id="board"></div>
+	<p id="message">Go Blue</p>
+</body>
+</html>

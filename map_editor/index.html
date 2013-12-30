@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<title>Map Editor</title>
+		<style type="text/css">
+		*
+		{
+			font-family: sans-serif;
+			margin: 0;
+			padding: 0;
+		}
+		h2
+		{
+			display: inline;
+		}
+		#content
+		{
+			margin: 20px;
+		}
+		#tiles
+		{
+			position: fixed;
+			padding: 2px;
+			top: 2px;
+			right: 2px;
+		}
+		#tiles img
+		{
+			border: solid 2px #FFFFFF;
+			cursor: pointer;
+		}
+		#tiles img.selected
+		{
+			border-color: #0ED0FA;
+		}
+		#map
+		{
+			background: #F0F0F0 url(imgs/ss_bg.png);
+		}
+		#map h2
+		{
+			padding: 10px;
+		}
+		#map .tile
+		{
+			width: 30px;
+			height: 30px;
+			border: outset 1px #E2E2E2;
+			cursor: pointer;
+			float: left;
+			text-indent: -9999px;
+		}
+		#map .line
+		{
+			clear: both;
+		}
+		#export, #import
+		{
+			cursor: pointer;
+			margin: 2px 0;
+		}
+		</style>
+	</head>
+	<body>
+		<div id="content">
+			<h1>Map Editor</h1>
+			<div id="tiles">
+				<img src="imgs/blank.png" width="32" height="32" alt="Blank" class="selected" />
+				<img src="imgs/ss_gb.png" width="32" height="32" alt="Ground" />
+				<img src="imgs/ss_gt.png" width="32" height="32" alt="Grass" />
+				<img src="imgs/ss_brick.png" width="32" height="32" alt="Brick" />
+				<img src="imgs/ss_cb.png" width="32" height="32" alt="Coin Block" />
+				<img src="imgs/ss_cbh.png" width="32" height="32" alt="Empty Coin Block" />
+				<img src="imgs/ss_fp.png" width="32" height="32" alt="Flag Poll" />
+				<img src="imgs/ss_fpb.png" width="32" height="32" alt="Flag Poll Bottom" />
+				<img src="imgs/ss_fpt.png" width="32" height="32" alt="Flag Poll Top" />
+			</div>
+			<div id="map">
+				
+			</div>
+			<div>
+				<button id="export">Export</button>
+				<button id="import">Import</button>
+			</div>
+			<div>
+				<textarea cols="80" rows="10" id="export_data"></textarea>
+			</div>
+		</div>
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<script type="text/javascript">
+		var width = 75;
+		var height = 24;
+		var mapData = new Array(height);
+		$(function()
+		{
+			$("#map").css(
+				{
+					width: width * 32 + "px",
+					height: height * 32 + "px"
+				}
+			);
+			for(var i = 0; i < height; i++)
+			{
+				mapData[i] = new Array(width);
+			}
+			
+			for(var p = 0; p < height; p++)
+			{
+				for(var q = 0; q < width; q++)
+				{
+					mapData[p][q] = 0;
+				}
+			}
+		
+			var isCtrlDown = false;
+			//Tile selection
+			$("#tiles img").click(
+			function()
+			{
+				$("#tiles img").removeClass("selected");
+				$(this).addClass("selected");
+			});
+			//Create tiles on image
+			var text = "";
+			for(var t = 0 ; t < height; t++)
+			{
+				text += "<div class=\"line\">";
+				for( var z = 0 ; z < width; z++)
+				{
+					text += "<div class=\"tile\">" + t + "-" + z + "</div>";
+				}
+				text += "</div>";
+			}
+			$("#map").html(text);
+			//clicking tiles
+			$("#map .tile").bind("click mouseover", function(event)
+			{
+				if(event.type == "mouseover" && isCtrlDown == false)
+				{
+					return;
+				}
+				var current_tile_type = $("#tiles img.selected").attr("src");
+				var current_pos = $(this).html().split("-");
+				var current_y = parseInt(current_pos[0]);
+				var current_x = parseInt(current_pos[1]);
+				
+				if(current_tile_type.toLowerCase().substr(current_tile_type.length - 9) == "ss_gb.png") //1
+				{
+					mapData[current_y][current_x] = 1;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 9) == "ss_gt.png") //2
+				{
+					mapData[current_y][current_x] = 2;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 12) == "ss_brick.png") //3
+				{
+					mapData[current_y][current_x] = 3;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 9) == "ss_cb.png") //4
+				{
+					mapData[current_y][current_x] = 4;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 10) == "ss_cbh.png") //6
+				{
+					mapData[current_y][current_x] = 6;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 9) == "blank.png") //0
+				{
+					mapData[current_y][current_x] = 0;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 9) == "ss_fp.png") //8
+				{
+					mapData[current_y][current_x] = 8;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 10) == "ss_fpb.png") //7
+				{
+					mapData[current_y][current_x] = 7;
+				}
+				else if(current_tile_type.toLowerCase().substr(current_tile_type.length - 10) == "ss_fpt.png") //9
+				{
+					mapData[current_y][current_x] = 9;
+				}
+				updateTileImage(current_y, current_x);
+			});
+			//test for ctrl down
+			$(document.body).bind("keydown keyup", function(event)
+			{
+				if(event.keyCode != 17)
+				{
+					return;
+				}
+				isCtrlDown = !(event.type == "keyup");
+			});
+			//export
+			$("#export").click(function()
+			{
+				var text = "";
+				for(var x = 0; x < height; x++)
+				{
+					if(x > 0)
+					{
+						text += "\n";
+					}
+					for(var y = 0; y < width; y++)
+					{
+						text += mapData[x][y];
+					}
+				}
+				$("#export_data").val(text);
+			});
+			//import
+			$("#import").click(function()
+			{
+				var text = $("#export_data").val();
+				var data = text.split("\n");
+				for(var x = 0; x < height; x++)
+				{
+					for(var y = 0; y < width; y++)
+					{
+						if(data.length > x && data[x].length > y)
+						{
+							mapData[x][y] = parseInt(data[x][y]);
+						}
+					}
+				}
+				updateTileImages();
+			});
+			//update tile images
+			function updateTileImages()
+			{
+				for(var x = 0; x < height; x++)
+				{
+					for(var y = 0; y < width; y++)
+					{
+						updateTileImage(x, y);
+					}
+				}
+			}
+			function updateTileImage(x, y)
+			{
+				var element = $("#map div.tile:contains(" + x + "-" + y + "):first");
+				switch(mapData[x][y])
+				{
+					case 1:
+						element.css("background", "url(imgs/ss_gb.png)");
+					break;
+					case 2:
+						element.css("background", "url(imgs/ss_gt.png)");
+					break;
+					case 3:
+						element.css("background", "url(imgs/ss_brick.png)");
+					break;
+					case 4:
+						element.css("background", "url(imgs/ss_cb.png)");
+					break;
+					case 6:
+						element.css("background", "url(imgs/ss_cbh.png)");
+					break;
+					case 8:
+						element.css("background", "url(imgs/ss_fp.png)");
+					break;
+					case 7:
+						element.css("background", "url(imgs/ss_fpb.png)");
+					break;
+					case 9:
+						element.css("background", "url(imgs/ss_fpt.png)");
+					break;
+					default:
+					case 0:
+						element.css("background", "");
+					break;
+				}
+			}
+			alert("Welcome. This map editor is for `SDL Sidescroller.`\n\nChoose a block in the top right hand corner and click on a square to add it to the map. Hold Ctrl and move over blocks to easily fill multiple blocks (not fully functional).\n\nUse Export and Import to save your map and load it up again.");
+		});
+		</script>
+	</body>
+</html>
