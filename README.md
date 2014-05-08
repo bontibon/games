@@ -1,4 +1,4 @@
-# [Games](http://techietim.github.io/games/)
+# [Games](http://bontibon.github.io/games/)
 
 a collection of games I made back in middle and high school.
 
